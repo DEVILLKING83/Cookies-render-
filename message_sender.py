@@ -14,7 +14,7 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(b"-- SERVER RUNNING>>CHARSI HERW")
 
 def execute_server():
-    PORT = 4000
+    PORT = 8000
     with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
         print(f"Server running at http://localhost:{PORT}")
         httpd.serve_forever()
